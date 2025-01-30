@@ -158,5 +158,3 @@ This Streamlit app provides a simple and interactive way to compare multiple mac
 streamlit run app.py
 ```
 
-Happy analyzing!
-```
