@@ -1,14 +1,6 @@
-# 🎈 Blank app template
-
-A simple Streamlit app template for you to modify!
+# Credit Card Fraud Detection Model Comparison - Streamlit App
 
 [[![Open in Streamlit]]((https://fidccara.streamlit.app/))
-
-### How to run it on your own machine
-
-
-
-# Credit Card Fraud Detection Model Comparison - Streamlit App
 
 This repository contains a Streamlit app designed to compare the performance of different machine learning models for a credit card fraud detection problem. The app visualizes and presents key performance metrics such as ROC AUC, F1 score, Precision, Recall, and Log Loss for various models.
 
