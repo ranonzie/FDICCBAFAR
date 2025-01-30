@@ -76,7 +76,7 @@ with col2:
         )
     elif plot_type == 'Line Plot':
         sns.lineplot(
-            x=filtered_df.index,
+            x=filtered_df.index,  # Ensure it's treated as categorical data
             y=filtered_df[metric],
             marker='o',
             color='b',
