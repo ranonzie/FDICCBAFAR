@@ -59,28 +59,45 @@ with col2:
         ['ROC AUC', 'F1', 'Precision', 'Recall', 'Log Loss']
     )
     
+    # Plot type selection
+    plot_type = st.selectbox(
+        "Select plot type:",
+        ['Bar Plot', 'Line Plot']
+    )
+    
     # Create plot
     fig, ax = plt.subplots(figsize=(10, 6))
-    sns.barplot(
-        x=filtered_df.index,
-        y=filtered_df[metric],
-        palette="coolwarm",
-        ax=ax
-    )
+    if plot_type == 'Bar Plot':
+        sns.barplot(
+            x=filtered_df.index,
+            y=filtered_df[metric],
+            palette="coolwarm",
+            ax=ax
+        )
+    elif plot_type == 'Line Plot':
+        sns.lineplot(
+            x=filtered_df.index,
+            y=filtered_df[metric],
+            marker='o',
+            color='b',
+            ax=ax
+        )
+        
     plt.title(f"{metric} Comparison")
     plt.ylabel(metric)
     plt.xticks(rotation=45)
     plt.ylim(0, 1.1 if metric != 'Log Loss' else filtered_df['Log Loss'].max()*1.1)
     
-    # Annotate values
-    for p in ax.patches:
-        ax.annotate(
-            f"{p.get_height():.3f}",
-            (p.get_x() + p.get_width() / 2., p.get_height()),
-            ha='center', va='center',
-            xytext=(0, 9),
-            textcoords='offset points'
-        )
+    # Annotate values for bar plot
+    if plot_type == 'Bar Plot':
+        for p in ax.patches:
+            ax.annotate(
+                f"{p.get_height():.3f}",
+                (p.get_x() + p.get_width() / 2., p.get_height()),
+                ha='center', va='center',
+                xytext=(0, 9),
+                textcoords='offset points'
+            )
     
     st.pyplot(fig)
 
@@ -107,5 +124,3 @@ with st.expander("Understanding the Metrics"):
     - Measures prediction confidence quality
     - Lower values indicate better calibrated probabilities
     """)
-
-# Run with: streamlit run app.py
