@@ -1,126 +1,142 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Configure page
-st.set_page_config(page_title="Fraud Detection Model Performance", layout="wide")
-st.title("Credit Card Fraud Detection Model Comparison")
-
-# Hardcoded performance metrics
-results = {
-    'Model': ['LogisticRegression', 'XGBoost', 'SVM', 'Voting',
-              'GradientBoosting', 'AdaBoost', 'RandomForest', 'DecisionTree'],
-    'ROC AUC': [0.881443, 0.861234, 0.859230, 0.858387,
-                0.857378, 0.844937, 0.808874, 0.667226],
-    'F1': [0.188679, 0.243902, 0.173913, 0.157895,
-           0.205128, 0.226415, 0.108108, 0.121951],
-    'Precision': [0.120968, 0.833333, 0.176471, 1.000000,
-                  1.000000, 0.333333, 1.000000, 0.106383],
-    'Recall': [0.428571, 0.142857, 0.171429, 0.085714,
-               0.114286, 0.171429, 0.057143, 0.142857],
-    'Log Loss': [0.148347, 0.066429, 0.088901, 0.063087,
-                 0.066573, 0.611846, 0.115316, 0.794323]
+# ----- Performance Metrics Data -----
+performance_data = {
+    'Model': ['XGBoost', 'Voting', 'SVM', 'RandomForest'],
+    'ROC AUC': [0.876475, 0.870923, 0.844930, 0.834949],
+    'F1': [0.122905, 0.138614, 0.151955, 0.006944],
+    'Precision': [0.289474, 0.229508, 0.110930, 0.166667],
+    'Recall': [0.078014, 0.099291, 0.241135, 0.003546],
+    'Log Loss': [0.059872, 0.069646, 0.112454, 0.087955]
 }
+metrics_df = pd.DataFrame(performance_data).set_index('Model')
 
-# Create DataFrame
-results_df = pd.DataFrame(results).set_index('Model')
+# ----- Streamlit App Layout -----
+st.set_page_config(page_title="Fraud Detection Interactive App", layout="wide")
+st.title("Fraud Detection Interactive App")
+st.markdown("""
+This app allows users to interact with pre-trained fraud detection models and visualize predictions in real time.
+Below are the performance metrics of the models used:
+""")
 
-# Sidebar controls
-st.sidebar.header("Model Selection")
-selected_models = st.sidebar.multiselect(
-    "Choose models to display:",
-    options=results_df.index.tolist(),
-    default=results_df.index.tolist()
-)
+# Display Performance Metrics Table in Sidebar
+st.sidebar.header("Model Performance Metrics")
+st.sidebar.table(metrics_df)
 
-# Filter results
-filtered_df = results_df.loc[selected_models]
+# Model selection from sidebar
+model_choice = st.sidebar.selectbox("Select a Model", ["XGBoost", "Voting", "SVM", "RandomForest"])
 
-# Main content
-col1, col2 = st.columns([1, 2])
+# ----- Input Transaction Features -----
+st.header("Input Transaction Details")
+st.markdown("Enter transaction details below to simulate a fraud prediction.")
 
-with col1:
-    st.header("Performance Metrics")
-    # Display styled table
-    styled_df = filtered_df.style.format("{:.3f}").background_gradient(
-        cmap='coolwarm', subset=['ROC AUC', 'F1', 'Precision', 'Recall']
-    ).background_gradient(
-        cmap='coolwarm_r', subset=['Log Loss']
-    )
-    st.dataframe(styled_df, use_container_width=True)
+# Example input fields (in practice these should match your model's features)
+income = st.number_input("Income", min_value=0.0, value=50000.0, step=1000.0)
+credit_risk_score = st.number_input("Credit Risk Score", min_value=300, max_value=850, value=650)
+velocity_24h = st.number_input("Transaction Velocity (24h)", min_value=0.0, value=1.0, step=0.1)
+proposed_credit_limit = st.number_input("Proposed Credit Limit", min_value=0.0, value=10000.0, step=100.0)
+name_email_similarity = st.slider("Name-Email Similarity", min_value=0.0, max_value=1.0, value=0.5, step=0.01)
+# Add more fields as needed...
 
-with col2:
-    st.header("Performance Visualization")
-    
-    # Metric selection
-    metric = st.selectbox(
-        "Select metric to visualize:",
-        ['ROC AUC', 'F1', 'Precision', 'Recall', 'Log Loss']
-    )
-    
-    # Plot type selection
-    plot_type = st.selectbox(
-        "Select plot type:",
-        ['Bar Plot', 'Line Plot']
-    )
-    
-    # Create plot
-    fig, ax = plt.subplots(figsize=(10, 6))
-    if plot_type == 'Bar Plot':
-        sns.barplot(
-            x=filtered_df.index,
-            y=filtered_df[metric],
-            palette="coolwarm",
-            ax=ax
-        )
-    elif plot_type == 'Line Plot':
-        sns.lineplot(
-            x=filtered_df.index,  # Ensure it's treated as categorical data
-            y=filtered_df[metric],
-            marker='o',
-            color='b',
-            ax=ax
-        )
-        
-    plt.title(f"{metric} Comparison")
-    plt.ylabel(metric)
-    plt.xticks(rotation=45)
-    plt.ylim(0, 1.1 if metric != 'Log Loss' else filtered_df['Log Loss'].max()*1.1)
-    
-    # Annotate values for bar plot
-    if plot_type == 'Bar Plot':
-        for p in ax.patches:
-            ax.annotate(
-                f"{p.get_height():.3f}",
-                (p.get_x() + p.get_width() / 2., p.get_height()),
-                ha='center', va='center',
-                xytext=(0, 9),
-                textcoords='offset points'
-            )
-    
-    st.pyplot(fig)
+# Bundle inputs into a DataFrame (simulation of feature vector)
+input_data = pd.DataFrame({
+    'income': [income],
+    'credit_risk_score': [credit_risk_score],
+    'velocity_24h': [velocity_24h],
+    'proposed_credit_limit': [proposed_credit_limit],
+    'name_email_similarity': [name_email_similarity]
+})
+st.write("### Input Features")
+st.write(input_data)
 
-# Metric explanations
-with st.expander("Understanding the Metrics"):
-    st.markdown("""
-    **ROC AUC (Area Under the ROC Curve):**
-    - Measures overall classification performance across all thresholds
-    - Higher values indicate better model performance (Range: 0-1)
-    
-    **F1 Score:**
-    - Harmonic mean of precision and recall
-    - Balances both false positives and false negatives
-    
-    **Precision:**
-    - Ratio of true positives to all predicted positives
-    - Measures model's accuracy in positive predictions
-    
-    **Recall:**
-    - Ratio of true positives to all actual positives
-    - Measures model's ability to find all positive instances
-    
-    **Log Loss:**
-    - Measures prediction confidence quality
-    - Lower values indicate better calibrated probabilities
-    """)
+# ----- Threshold Adjustment -----
+st.header("Decision Threshold Adjustment")
+threshold = st.slider("Set Prediction Threshold", 0.0, 1.0, 0.5, step=0.01)
+st.write(f"Current threshold is set to {threshold:.2f}")
+
+# ----- Simulated Model Prediction -----
+st.header("Model Prediction")
+st.markdown(f"Simulated prediction for **{model_choice}**:")
+
+# In a real app, you would load your trained model and call model.predict_proba(input_data) etc.
+# Here, we simulate different predictions for each model.
+if model_choice == "XGBoost":
+    simulated_proba = 0.10  # 10% fraud probability
+elif model_choice == "Voting":
+    simulated_proba = 0.15  # 15% fraud probability
+elif model_choice == "SVM":
+    simulated_proba = 0.20  # 20% fraud probability
+elif model_choice == "RandomForest":
+    simulated_proba = 0.05  # 5% fraud probability
+
+# Apply threshold to get predicted class
+predicted_class = int(simulated_proba >= threshold)
+
+st.write(f"**Predicted Fraud Probability:** {simulated_proba:.2%}")
+st.write(f"**Predicted Class:** {'Fraud' if predicted_class == 1 else 'Non-Fraud'}")
+
+# ----- Visualization of Prediction -----
+fig, ax = plt.subplots(figsize=(6, 4))
+categories = ['Fraud', 'Non-Fraud']
+probs = [simulated_proba, 1 - simulated_proba]
+colors = ['red', 'green']
+ax.bar(categories, probs, color=colors)
+ax.set_ylim(0, 1)
+ax.set_ylabel("Probability")
+ax.set_title("Simulated Prediction Distribution")
+st.pyplot(fig)
+
+# ----- Model Performance Visualization -----
+st.header("Overall Model Performance Comparison")
+st.markdown("Below is a bar chart comparing the key performance metrics of the models.")
+
+fig2, ax2 = plt.subplots(2, 2, figsize=(14, 10))
+metrics_to_plot = ['ROC AUC', 'F1', 'Precision', 'Recall']
+for i, metric in enumerate(metrics_to_plot):
+    row, col = divmod(i, 2)
+    sns.barplot(x=metrics_df.index, y=metrics_df[metric], ax=ax2[row][col], palette='coolwarm')
+    ax2[row][col].set_title(metric)
+    ax2[row][col].set_ylim(0, 1)
+    ax2[row][col].set_xlabel("")
+
+plt.tight_layout()
+st.pyplot(fig2)
+
+# ----- Additional Interactivity: ROC Curve and Precision-Recall Curve -----
+st.header("Model Metric Curves (Simulated)")
+st.markdown("""
+For demonstration purposes, below are simulated ROC and Precision-Recall curves for the selected model.
+In a production system, these curves would be generated from test data predictions.
+""")
+
+# Simulated ROC Curve
+fpr = np.linspace(0, 1, 100)
+tpr = np.sqrt(fpr)  # Dummy function for demonstration
+fig3, ax3 = plt.subplots(figsize=(6, 4))
+ax3.plot(fpr, tpr, label=f"{model_choice} (ROC Curve)")
+ax3.plot([0, 1], [0, 1], 'k--', label="Chance")
+ax3.set_xlabel("False Positive Rate")
+ax3.set_ylabel("True Positive Rate")
+ax3.set_title("Simulated ROC Curve")
+ax3.legend()
+st.pyplot(fig3)
+
+# Simulated Precision-Recall Curve
+recall_vals = np.linspace(0, 1, 100)
+precision_vals = 1 - recall_vals**2  # Dummy function for demonstration
+fig4, ax4 = plt.subplots(figsize=(6, 4))
+ax4.plot(recall_vals, precision_vals, label=f"{model_choice} (Precision-Recall)")
+ax4.set_xlabel("Recall")
+ax4.set_ylabel("Precision")
+ax4.set_title("Simulated Precision-Recall Curve")
+ax4.legend()
+st.pyplot(fig4)
+
+# ----- Final Note -----
+st.markdown("""
+**Note:** This app is a prototype. In a real deployment, the simulated predictions and curves would be replaced by outputs from your trained models and real-time data.
+""")
