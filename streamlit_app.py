@@ -65,13 +65,13 @@ st.markdown(f"Simulated prediction for **{model_choice}**:")
 # In a real app, you would load your trained model and call model.predict_proba(input_data) etc.
 # Here, we simulate different predictions for each model.
 if model_choice == "XGBoost":
-    simulated_proba = 0.10  # 10% fraud probability
+    simulated_proba = 0.47  # 47% fraud probability
 elif model_choice == "Voting":
-    simulated_proba = 0.15  # 15% fraud probability
+    simulated_proba = 0.45  # 45% fraud probability
 elif model_choice == "SVM":
     simulated_proba = 0.20  # 20% fraud probability
 elif model_choice == "RandomForest":
-    simulated_proba = 0.05  # 5% fraud probability
+    simulated_proba = 0.15  # 15% fraud probability
 
 # Apply threshold to get predicted class
 predicted_class = int(simulated_proba >= threshold)
